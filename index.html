@@ -210,6 +210,28 @@ footer a{text-decoration:none}
 footer a:hover{color:#fff}
 footer .legal{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.12);font-size:.82rem;line-height:1.65}
 
+
+/* banner slider */
+.banners{background:#fff;padding:0;border-bottom:1px solid var(--line)}
+.slider{position:relative;overflow:hidden;background:#fff;max-width:1920px;margin:0 auto}
+.slider .viewport{overflow:hidden}
+.slider .track{display:flex;transition:transform .7s cubic-bezier(.65,0,.25,1);will-change:transform}
+.slider .slide{flex:0 0 100%;display:block;position:relative;aspect-ratio:2.68/1;overflow:hidden}
+.slider .slide img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.slider .controls{position:relative;display:flex;align-items:center;justify-content:center;gap:18px;padding:10px 16px;background:#fff}
+.slider .arrow{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:#fff;color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s}
+.slider .arrow:hover{background:var(--blue-tint);border-color:var(--blue)}
+.slider .arrow .ic{width:18px;height:18px}
+.slider .prev .ic{transform:rotate(180deg)}
+.slider .dots{display:flex;gap:8px}
+.slider .dot{width:10px;height:10px;border-radius:99px;border:0;padding:0;background:#C4D7E3;cursor:pointer;transition:width .3s,background .3s}
+.slider .dot[aria-current="true"]{width:30px;background:var(--blue-deep)}
+.slider .progress{position:absolute;left:0;top:-1px;height:3px;background:var(--lime);width:0}
+.slider.playing .progress{animation:prog var(--dur,5500ms) linear forwards}
+@keyframes prog{from{width:0}to{width:100%}}
+@media (max-width:820px){.slider .controls{padding:8px 12px;gap:14px}.slider .arrow{width:32px;height:32px}.slider .dot{width:8px;height:8px}.slider .dot[aria-current="true"]{width:22px}}
+@media (prefers-reduced-motion:reduce){.slider .track{transition:none}.slider .progress{display:none}}
+
 .mbar{display:none}
 .wa{position:fixed;right:20px;bottom:20px;z-index:45;display:flex;align-items:center;gap:10px;background:#25D366;color:#fff;border-radius:999px;padding:14px 20px 14px 16px;font:600 .98rem var(--body);text-decoration:none;box-shadow:0 10px 28px -6px rgba(37,211,102,.7),0 2px 6px rgba(0,0,0,.2);transition:transform .15s}
 .wa:hover{transform:translateY(-2px)}
@@ -315,6 +337,27 @@ footer .legal{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255
 </header>
 
 <main id="top">
+<section class="banners" aria-label="Featured offers">
+    <div class="slider" id="slider" role="region" aria-roledescription="carousel" aria-label="Rudvir Financial Services highlights">
+      <div class="viewport">
+        <div class="track" id="track" aria-live="off">
+          <a class="slide" href="https://wa.me/918180804551?text=Hello%20Rudvir%20Financial%20Services%2C%20I%20want%20to%20know%20about%20Refer%20%26%20Earn." target="_blank" rel="noopener" role="group" aria-roledescription="slide" aria-label="1 of 2: Refer and earn with Rudvir Financial Services">
+            <img src="assets/img/rudvir/banner-refer-1983.webp" srcset="assets/img/rudvir/banner-refer-960.webp 960w, assets/img/rudvir/banner-refer-1983.webp 1983w" sizes="100vw" width="1983" height="793" alt="Refer and Earn with Rudvir Financial Services. Download the app, log in, refer friends, and get a reward when the file is disbursed." fetchpriority="high">
+          </a>
+          <a class="slide" href="#loans" role="group" aria-roledescription="slide" aria-label="2 of 2: Loans for every life goal">
+            <img src="assets/img/rudvir/banner-loans-2000.webp" srcset="assets/img/rudvir/banner-loans-960.webp 960w, assets/img/rudvir/banner-loans-2000.webp 2000w" sizes="100vw" width="2000" height="721" alt="Loans for every life goal: home loan, personal loan, business loan, CC/OD and working capital with 28+ banks and NBFCs across India." loading="lazy">
+          </a>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="progress" aria-hidden="true"></div>
+        <button class="arrow prev" type="button" aria-label="Previous slide"><svg class="ic"><use href="#i-arrow"/></svg></button>
+        <div class="dots" id="dots"></div>
+        <button class="arrow next" type="button" aria-label="Next slide"><svg class="ic"><use href="#i-arrow"/></svg></button>
+      </div>
+    </div>
+</section>
+
 <section class="hero">
   <div class="wrap">
     <div class="main">
@@ -575,6 +618,35 @@ footer .legal{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255
   }
   ['amt','yrs','ret'].forEach(function(id){$(id).addEventListener('input',calc)});
   calc();
+  // Banner slider: slides sideways, auto-plays, pauses on hover/focus/hidden tab, supports swipe, arrows and dots.
+  (function(){
+    var box=$('slider'),track=$('track'),slides=track.children,n=slides.length,dotsEl=$('dots'),i=0,timer,DUR=5500;
+    var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    box.style.setProperty('--dur',DUR+'ms');
+    for(var k=0;k<n;k++){(function(k){var b=document.createElement('button');b.className='dot';b.type='button';b.setAttribute('aria-label','Go to slide '+(k+1));b.onclick=function(){go(k,true)};dotsEl.appendChild(b)})(k)}
+    function show(){
+      track.style.transform='translateX('+(-i*100)+'%)';
+      [].forEach.call(dotsEl.children,function(d,k){d.setAttribute('aria-current',k===i)});
+      [].forEach.call(slides,function(s,k){s.tabIndex=k===i?0:-1;s.setAttribute('aria-hidden',k!==i)});
+    }
+    function restartBar(){var p=box.querySelector('.progress');box.classList.remove('playing');void p.offsetWidth;if(timer)box.classList.add('playing')}
+    function go(k,user){i=(k+n)%n;show();if(user&&timer)start();else restartBar()}
+    function start(){stop();if(reduce)return;timer=setInterval(function(){go(i+1)},DUR);restartBar()}
+    function stop(){clearInterval(timer);timer=null;box.classList.remove('playing')}
+    box.querySelector('.prev').onclick=function(){go(i-1,true)};
+    box.querySelector('.next').onclick=function(){go(i+1,true)};
+    box.addEventListener('mouseenter',stop);box.addEventListener('mouseleave',start);
+    box.addEventListener('focusin',stop);box.addEventListener('focusout',start);
+    document.addEventListener('visibilitychange',function(){document.hidden?stop():start()});
+    box.addEventListener('keydown',function(e){if(e.key==='ArrowLeft')go(i-1,true);if(e.key==='ArrowRight')go(i+1,true)});
+    var x0=null,dx=0,moved=false;
+    track.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;dx=0;moved=false;stop()},{passive:true});
+    track.addEventListener('touchmove',function(e){dx=e.touches[0].clientX-x0;if(Math.abs(dx)>10)moved=true},{passive:true});
+    track.addEventListener('touchend',function(){if(Math.abs(dx)>45)go(i+(dx<0?1:-1));start()});
+    track.addEventListener('click',function(e){if(moved){e.preventDefault();moved=false}});
+    show();start();
+  })();
+
   $('yr').textContent=new Date().getFullYear();
 
   var btn=document.querySelector('.menu-btn'),nav=$('nav');
